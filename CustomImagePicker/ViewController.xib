@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="6250" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D131" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6244"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ViewController">
             <connections>
-                <outlet property="imageView" destination="PtL-4W-0aV" id="PJP-vq-rVd"/>
+                <outlet property="imageView1" destination="PtL-4W-0aV" id="xRm-70-eUk"/>
+                <outlet property="imageView2" destination="OO4-IQ-5xE" id="5hY-FD-YOQ"/>
+                <outlet property="imageView3" destination="30L-G2-IOz" id="Tca-jH-Ky8"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -30,21 +32,66 @@
                     </connections>
                 </button>
                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="PtL-4W-0aV">
-                    <rect key="frame" x="150" y="150" width="300" height="300"/>
+                    <rect key="frame" x="250" y="128" width="100" height="100"/>
                     <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                     <constraints>
+                        <constraint firstAttribute="width" constant="100" id="8u1-aG-POD"/>
                         <constraint firstAttribute="width" constant="300" id="9xM-jS-KK6"/>
                         <constraint firstAttribute="height" constant="300" id="CGC-VL-AoV"/>
+                        <constraint firstAttribute="height" constant="100" id="Sv0-A2-r5H"/>
                     </constraints>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="9xM-jS-KK6"/>
+                            <exclude reference="CGC-VL-AoV"/>
+                        </mask>
+                    </variation>
+                </imageView>
+                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="OO4-IQ-5xE">
+                    <rect key="frame" x="250" y="273" width="100" height="100"/>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="100" id="VbI-TG-aGr"/>
+                        <constraint firstAttribute="height" constant="300" id="gGq-az-ZvH"/>
+                        <constraint firstAttribute="width" constant="100" id="sao-RC-zlf"/>
+                        <constraint firstAttribute="width" constant="300" id="v2D-WG-j8N"/>
+                    </constraints>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="gGq-az-ZvH"/>
+                            <exclude reference="v2D-WG-j8N"/>
+                        </mask>
+                    </variation>
+                </imageView>
+                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="30L-G2-IOz">
+                    <rect key="frame" x="250" y="419" width="100" height="100"/>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="100" id="Ulc-XA-HX5"/>
+                        <constraint firstAttribute="height" constant="300" id="mIb-gP-gzg"/>
+                        <constraint firstAttribute="width" constant="300" id="uT1-VE-E31"/>
+                        <constraint firstAttribute="height" constant="100" id="zES-hY-Y9T"/>
+                    </constraints>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="mIb-gP-gzg"/>
+                            <exclude reference="uT1-VE-E31"/>
+                        </mask>
+                    </variation>
                 </imageView>
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <constraints>
                 <constraint firstAttribute="centerX" secondItem="L2i-dY-tZ6" secondAttribute="centerX" id="3mi-eL-3PD"/>
-                <constraint firstAttribute="centerY" secondItem="PtL-4W-0aV" secondAttribute="centerY" id="HSC-bf-qtY"/>
-                <constraint firstAttribute="centerX" secondItem="PtL-4W-0aV" secondAttribute="centerX" id="RAp-0J-BNP"/>
+                <constraint firstItem="30L-G2-IOz" firstAttribute="top" secondItem="OO4-IQ-5xE" secondAttribute="bottom" constant="46" id="H55-LZ-v21"/>
+                <constraint firstAttribute="centerX" secondItem="30L-G2-IOz" secondAttribute="centerX" id="KzJ-rG-gEn"/>
+                <constraint firstItem="OO4-IQ-5xE" firstAttribute="top" secondItem="PtL-4W-0aV" secondAttribute="bottom" constant="45" id="RFd-Kj-wfB"/>
+                <constraint firstAttribute="centerX" secondItem="PtL-4W-0aV" secondAttribute="centerX" id="V0X-ML-TFI"/>
                 <constraint firstItem="L2i-dY-tZ6" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="50" id="XVk-TM-Ep2"/>
+                <constraint firstAttribute="centerX" secondItem="OO4-IQ-5xE" secondAttribute="centerX" id="XcW-i7-3jq"/>
+                <constraint firstItem="PtL-4W-0aV" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="128" id="vew-Rc-Gvd"/>
             </constraints>
+            <point key="canvasLocation" x="380" y="375"/>
         </view>
     </objects>
 </document>

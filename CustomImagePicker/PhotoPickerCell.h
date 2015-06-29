@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <AssetsLibrary/AssetsLibrary.h>
+#import "Header.h"
 
 @interface PhotoPickerCell : UICollectionViewCell
 - (void) setAsset:(ALAsset *)asset;

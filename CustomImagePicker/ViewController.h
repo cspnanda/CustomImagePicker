@@ -9,6 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "CustomeImagePicker.h"
 @interface ViewController : UIViewController <CustomeImagePickerDelegate>
-@property(nonatomic, weak) IBOutlet UIImageView *imageView;
+@property(nonatomic, weak) IBOutlet UIImageView *imageView1;
+@property(nonatomic, weak) IBOutlet UIImageView *imageView2;
+@property(nonatomic, weak) IBOutlet UIImageView *imageView3;
 
 @end

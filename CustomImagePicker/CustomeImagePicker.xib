@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="6250" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14D131" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6244"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="CustomeImagePicker">
             <connections>
                 <outlet property="collectionView" destination="ICt-Uh-ib3" id="rvD-AU-lBt"/>
+                <outlet property="distanceFromButton" destination="XEG-Ho-19U" id="PC7-2l-ddu"/>
+                <outlet property="nextButton" destination="UFl-zu-MkG" id="opR-rN-R2w"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -15,8 +17,59 @@
             <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XFf-AK-OXG" userLabel="topView">
+                    <rect key="frame" x="0.0" y="0.0" width="600" height="65"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fzz-mZ-HZY">
+                            <rect key="frame" x="8" y="26" width="32" height="32"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="32" id="4aO-Ig-Ud3"/>
+                                <constraint firstAttribute="width" constant="32" id="5MJ-7N-M5T"/>
+                            </constraints>
+                            <state key="normal" image="discard.png">
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="cancelPressed:" destination="-1" eventType="touchUpInside" id="wN4-Ai-Bfe"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UFl-zu-MkG">
+                            <rect key="frame" x="465" y="27" width="46" height="30"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="30" id="h9B-kU-ENU"/>
+                                <constraint firstAttribute="width" constant="46" id="xuw-8h-0d7"/>
+                            </constraints>
+                            <state key="normal" title="Next">
+                                <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="donePressed:" destination="-1" eventType="touchUpInside" id="LZR-3A-YRK"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" red="1" green="0.49803921568627452" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="trailing" secondItem="UFl-zu-MkG" secondAttribute="trailing" constant="89" id="0q3-nv-egu"/>
+                        <constraint firstItem="UFl-zu-MkG" firstAttribute="top" secondItem="XFf-AK-OXG" secondAttribute="top" constant="27" id="6b4-A7-zWy"/>
+                        <constraint firstItem="fzz-mZ-HZY" firstAttribute="top" secondItem="XFf-AK-OXG" secondAttribute="top" constant="16" id="Dfw-re-MRt"/>
+                        <constraint firstAttribute="centerY" secondItem="fzz-mZ-HZY" secondAttribute="centerY" id="EZ2-3h-6Eb"/>
+                        <constraint firstItem="fzz-mZ-HZY" firstAttribute="top" secondItem="XFf-AK-OXG" secondAttribute="top" constant="26" id="Okj-7d-KyE"/>
+                        <constraint firstItem="fzz-mZ-HZY" firstAttribute="leading" secondItem="XFf-AK-OXG" secondAttribute="leading" constant="8" id="UBa-VF-Fhl"/>
+                        <constraint firstItem="fzz-mZ-HZY" firstAttribute="top" secondItem="XFf-AK-OXG" secondAttribute="top" constant="5" id="gyu-oH-caR"/>
+                        <constraint firstAttribute="trailing" secondItem="fzz-mZ-HZY" secondAttribute="trailing" constant="560" id="rMa-79-q2S"/>
+                    </constraints>
+                    <variation key="default">
+                        <mask key="constraints">
+                            <exclude reference="Dfw-re-MRt"/>
+                            <exclude reference="EZ2-3h-6Eb"/>
+                            <exclude reference="gyu-oH-caR"/>
+                            <exclude reference="rMa-79-q2S"/>
+                        </mask>
+                    </variation>
+                </view>
                 <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="none" translatesAutoresizingMaskIntoConstraints="NO" id="ICt-Uh-ib3">
-                    <rect key="frame" x="0.0" y="75" width="600" height="525"/>
+                    <rect key="frame" x="0.0" y="65" width="600" height="535"/>
                     <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="zYR-f2-AgM">
                         <size key="itemSize" width="50" height="50"/>
                         <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -28,45 +81,22 @@
                         <outlet property="delegate" destination="-1" id="Xxi-v1-5FD"/>
                     </connections>
                 </collectionView>
-                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Wiz-P5-omb">
-                    <rect key="frame" x="521" y="24" width="46" height="30"/>
-                    <state key="normal" title="Done">
-                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                    </state>
-                    <connections>
-                        <action selector="donePressed:" destination="-1" eventType="touchUpInside" id="UQ2-rn-XY4"/>
-                    </connections>
-                </button>
-                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YkS-rc-bG3">
-                    <rect key="frame" x="8" y="24" width="70" height="30"/>
-                    <state key="normal" title="Cancel">
-                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                    </state>
-                    <connections>
-                        <action selector="cancelPressed:" destination="-1" eventType="touchUpInside" id="uZz-Re-AKl"/>
-                    </connections>
-                </button>
             </subviews>
-            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
             <constraints>
-                <constraint firstItem="Wiz-P5-omb" firstAttribute="leading" secondItem="YkS-rc-bG3" secondAttribute="trailing" constant="443" id="8Rn-wd-AZR"/>
+                <constraint firstItem="ICt-Uh-ib3" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="65" id="B0Q-ru-qBe"/>
                 <constraint firstItem="ICt-Uh-ib3" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="DTi-XV-piP"/>
-                <constraint firstItem="YkS-rc-bG3" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" constant="8" id="Ib8-Z3-eCU"/>
-                <constraint firstItem="ICt-Uh-ib3" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="31" id="VKp-JD-kr2"/>
-                <constraint firstAttribute="trailing" secondItem="Wiz-P5-omb" secondAttribute="trailing" constant="33" id="WUt-fO-HSa"/>
+                <constraint firstItem="ICt-Uh-ib3" firstAttribute="top" secondItem="XFf-AK-OXG" secondAttribute="bottom" id="Ezs-h0-WXE"/>
+                <constraint firstItem="XFf-AK-OXG" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="UZP-Ia-eKu"/>
                 <constraint firstAttribute="bottom" secondItem="ICt-Uh-ib3" secondAttribute="bottom" id="XEG-Ho-19U"/>
-                <constraint firstItem="Wiz-P5-omb" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="24" id="bQZ-mw-zYF"/>
+                <constraint firstAttribute="trailing" secondItem="XFf-AK-OXG" secondAttribute="trailing" id="Ybr-00-olh"/>
                 <constraint firstAttribute="trailing" secondItem="ICt-Uh-ib3" secondAttribute="trailing" id="ksL-q0-zIQ"/>
-                <constraint firstItem="YkS-rc-bG3" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="24" id="q6U-HQ-zcu"/>
-                <constraint firstItem="ICt-Uh-ib3" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="75" id="ts4-6u-52Q"/>
+                <constraint firstItem="XFf-AK-OXG" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="rc6-c4-fls"/>
             </constraints>
-            <variation key="default">
-                <mask key="constraints">
-                    <exclude reference="VKp-JD-kr2"/>
-                    <exclude reference="8Rn-wd-AZR"/>
-                </mask>
-            </variation>
             <point key="canvasLocation" x="330" y="322"/>
         </view>
     </objects>
+    <resources>
+        <image name="discard.png" width="44" height="44"/>
+    </resources>
 </document>
