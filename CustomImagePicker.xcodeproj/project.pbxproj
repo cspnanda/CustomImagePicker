@@ -40,6 +40,8 @@
 		1832E8F01B41142800D0553C /* front-camera@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1832E8E61B41142800D0553C /* front-camera@2x.png */; };
 		184167691C24CEE5001A160F /* YCameraViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 184167671C24CEE5001A160F /* YCameraViewController.m */; };
 		1841676A1C24CEE5001A160F /* YCameraViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 184167681C24CEE5001A160F /* YCameraViewController.xib */; };
+		184FC7F11C2528EC00CEA45A /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 184FC7EF1C2528EC00CEA45A /* Photos.framework */; };
+		184FC7F21C2528EC00CEA45A /* PhotosUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 184FC7F01C2528EC00CEA45A /* PhotosUI.framework */; };
 		18B38D141A5B17FC005915E3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 18B38D131A5B17FC005915E3 /* main.m */; };
 		18B38D171A5B17FC005915E3 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 18B38D161A5B17FC005915E3 /* AppDelegate.m */; };
 		18B38D1F1A5B17FC005915E3 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18B38D1E1A5B17FC005915E3 /* Images.xcassets */; };
@@ -103,6 +105,8 @@
 		184167661C24CEE5001A160F /* YCameraViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YCameraViewController.h; path = CustomImagePicker/YCameraViewController.h; sourceTree = "<group>"; };
 		184167671C24CEE5001A160F /* YCameraViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = YCameraViewController.m; path = CustomImagePicker/YCameraViewController.m; sourceTree = "<group>"; };
 		184167681C24CEE5001A160F /* YCameraViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = YCameraViewController.xib; path = CustomImagePicker/YCameraViewController.xib; sourceTree = "<group>"; };
+		184FC7EF1C2528EC00CEA45A /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
+		184FC7F01C2528EC00CEA45A /* PhotosUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhotosUI.framework; path = System/Library/Frameworks/PhotosUI.framework; sourceTree = SDKROOT; };
 		18B38D0E1A5B17FC005915E3 /* CustomImagePicker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomImagePicker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		18B38D121A5B17FC005915E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		18B38D131A5B17FC005915E3 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -123,6 +127,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				184FC7F11C2528EC00CEA45A /* Photos.framework in Frameworks */,
+				184FC7F21C2528EC00CEA45A /* PhotosUI.framework in Frameworks */,
 				18B38D461A5B202A005915E3 /* AssetsLibrary.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -194,6 +200,8 @@
 		18B38D051A5B17FC005915E3 = {
 			isa = PBXGroup;
 			children = (
+				184FC7EF1C2528EC00CEA45A /* Photos.framework */,
+				184FC7F01C2528EC00CEA45A /* PhotosUI.framework */,
 				1832E8CC1B410F5100D0553C /* images */,
 				18C6F6A71A603DEC0062AD30 /* Library */,
 				18B38D451A5B202A005915E3 /* AssetsLibrary.framework */,
