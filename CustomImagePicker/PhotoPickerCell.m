@@ -20,6 +20,10 @@
 {
   return self.photoImageView;
 }
+-(void) performSelectionAnimations
+{
+  
+}
 - (id)initWithFrame:(CGRect)frame {
   
   self = [super initWithFrame:frame];
@@ -57,14 +61,39 @@
 {
   [self.tickView setHidden:YES];
 }
-- (void) setAsset:(ALAsset *)asset
+- (void) setAsset:(PHAsset *)asset
 {
   // 2
   _asset = asset;
-  self.photoImageView.image = [UIImage imageWithCGImage:[asset thumbnail]];
+  NSInteger retinaScale = [UIScreen mainScreen].scale;
+  CGSize retinaSquare = CGSizeMake(100*retinaScale, 100*retinaScale);
+  
+  PHImageRequestOptions *cropToSquare = [[PHImageRequestOptions alloc] init];
+  cropToSquare.resizeMode = PHImageRequestOptionsResizeModeExact;
+  cropToSquare.networkAccessAllowed = YES;
+  cropToSquare.synchronous = NO;
+  CGFloat cropSideLength = MIN(asset.pixelWidth, asset.pixelHeight);
+  CGRect square = CGRectMake(0, 0, cropSideLength, cropSideLength);
+  CGRect cropRect = CGRectApplyAffineTransform(square,
+                                               CGAffineTransformMakeScale(1.0 / asset.pixelWidth,
+                                                                          1.0 / asset.pixelHeight));
+  
+  cropToSquare.normalizedCropRect = cropRect;
+  
+  [[PHImageManager defaultManager]
+   requestImageForAsset:(PHAsset *)asset
+   targetSize:retinaSquare
+   contentMode:PHImageContentModeAspectFit
+   options:cropToSquare
+   resultHandler:^(UIImage *result, NSDictionary *info) {
+     self.photoImageView.image = result;
+   }];
+  
+  
 }
 - (void) setImage:(UIImage *)image
 {
   [self.photoImageView setImage:image];
 }
+
 @end

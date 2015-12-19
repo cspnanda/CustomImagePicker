@@ -8,30 +8,24 @@
 
 #import "CustomeImagePicker.h"
 #import "UIView+RNActivityView.h"
+@import Photos;
+@import PhotosUI;
+
 @interface CustomeImagePicker ()
-@property(nonatomic, strong) NSArray *assets;
-// @property(nonatomic,strong) UIImage *selectedImage;
+@property(nonatomic, strong) NSMutableArray *assets;
 @end
 
 @implementation CustomeImagePicker
-@synthesize whereamI,skipButton,nextButton,hideNextButton,hideSkipButton,highLightThese,maxPhotos,distanceFromButton,nearByCollectionView,currentUserLocation,showOnlyPhotosWithGPS;
-// @synthesize selectedImages,disselectedImages;
+@synthesize whereamI,skipButton,nextButton,hideNextButton,hideSkipButton,highLightThese,maxPhotos,distanceFromButton,nearByCollectionView,currentUserLocation,showOnlyPhotosWithGPS,howMany;
 
--(BOOL) checkForCamera
-{
-  AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-  if(authStatus == AVAuthorizationStatusAuthorized) {
-    // do your logic
-    return YES;
-  }
-  return NO;
-}
+/* View Delegate Methods */
+
 -(void) viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
   if(highLightThese == Nil)
     highLightThese = [[NSMutableArray alloc] init];
-
+  
 }
 -(void) viewDidDisappear:(BOOL)animated
 {
@@ -41,8 +35,7 @@
 -(void) viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
-//  if(showOnlyPhotosWithGPS==NO && [self checkForCamera] == YES)
-    [self performSelector:@selector(initializeCamera) withObject:nil afterDelay:0.1];
+  [self performSelector:@selector(initializeCamera) withObject:nil afterDelay:0.1];
 }
 
 - (void)viewDidLoad
@@ -60,8 +53,6 @@
     [nextButton setHidden:NO];
   else
     [nextButton setHidden:YES];
-//  selectedImages = [[NSMutableArray alloc] init];
-//  disselectedImages = [[NSMutableArray alloc] init];
   [self.collectionView registerClass:[PhotoPickerCell class] forCellWithReuseIdentifier:@"PhotoPickerCell"];
   [self.collectionView registerClass:[CameraCell class] forCellWithReuseIdentifier:@"CameraCell"];
   
@@ -72,63 +63,57 @@
     [flowLayout setItemSize:CGSizeMake(100, 100)];
   [flowLayout setScrollDirection:UICollectionViewScrollDirectionVertical];
   [self.collectionView setCollectionViewLayout:flowLayout];
+  self.assets = [[NSMutableArray alloc] init];
   
-  _assets = [@[] mutableCopy];
-  __block NSMutableArray *tmpAssets = [@[] mutableCopy];
-  if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-    ALAsset *asset = [[ALAsset alloc] init];
-    if(showOnlyPhotosWithGPS==NO)
-      [tmpAssets insertObject:asset atIndex:0];
+  totalNumberOfPhotos = 0;
+  lastNumber = 0;
+  hasReachedEnd = NO;
+  PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
+  if(status == PHAuthorizationStatusAuthorized) {
+    if(hasReachedEnd == NO)
+      [self loadPhoto];
   }
-  ALAssetsLibrary *assetsLibrary = [CustomeImagePicker defaultAssetsLibrary];
-  [assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-    [group setAssetsFilter:[ALAssetsFilter allPhotos]];
-    [group enumerateAssetsWithOptions:NSEnumerationReverse usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-      if(result)
-      {
-        if(showOnlyPhotosWithGPS == YES)
-        {
-          if([result valueForProperty:ALAssetPropertyLocation])
-            [tmpAssets addObject:result];
-        }
-        else
-          [tmpAssets addObject:result];
+  else if(status == PHAuthorizationStatusNotDetermined) {
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus authorizationStatus) {
+      if(authorizationStatus == PHAuthorizationStatusAuthorized) {
+        if(hasReachedEnd == NO)
+          [self loadPhoto];
       }
-    }
-     ];
-    
-  } failureBlock:^(NSError *error) {
-    NSLog(@"Error loading images %@", error);
-    if([ALAssetsLibrary authorizationStatus] != ALAuthorizationStatusAuthorized)
-    {
-      [self displayErrorOnMainQueue:@"Photo Access Disabled" message:@"Please allow Photo Access in System Settings"];
-    }
-  }];
-  self.assets = tmpAssets;
-  dispatch_time_t popTime1 = dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC);
-  dispatch_after(popTime1, dispatch_get_main_queue(), ^(void){
-    if(showOnlyPhotosWithGPS==YES) {
-    OLGhostAlertView *ghastly = [[OLGhostAlertView alloc] initWithTitle:@"Photos with Location" message: @"Only Photos with Location Information are shown here." timeout:2.0 dismissible:YES];
-    [ghastly show];
-    }
-
-    [self.collectionView reloadData];
-  });
-
-  // });
-  nextButton.layer.borderColor = [[UIColor whiteColor] CGColor];
-  nextButton.layer.borderWidth = 1.0f;
-  nextButton.layer.cornerRadius = 5.0f;
-
-  skipButton.layer.borderColor = [[UIColor whiteColor] CGColor];
-  skipButton.layer.borderWidth = 1.0f;
-  skipButton.layer.cornerRadius = 5.0f;
-  
-//  dispatch_time_t popTime1 = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC);
-//  dispatch_after(popTime1, dispatch_get_main_queue(), ^(void){
-//    [self addLiveCamera];
-//  });
+    }];
+  }
+  else if(status == PHAuthorizationStatusRestricted || status == PHAuthorizationStatusDenied) {
+    [self photoRollAccessDisabled];
+  }
 }
+
+/* Error Handling Functions */
+
+-(void) cameraAccessDisabled {
+  dispatch_async(dispatch_get_main_queue(), ^(void) {
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Camera Access Diabled" message:@"Trumbs can't access Your Camera. Tap Settings Now to allow access to Camera" delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:@"Settings", nil];
+    [alertView show];
+    [alertView release];
+  });
+}
+
+-(void) photoRollAccessDisabled {
+  dispatch_async(dispatch_get_main_queue(), ^(void) {
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Photo Access Diabled" message:@"Trumbs can't access Your Photos. Tap Settings Now to allow access to Photos" delegate:self cancelButtonTitle:@"Dismiss" otherButtonTitles:@"Settings", nil];
+    [alertView show];
+    [alertView release];
+  });
+}
+-(BOOL) checkForCamera
+{
+  AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+  if(authStatus == AVAuthorizationStatusAuthorized) {
+    // do your logic
+    return YES;
+  }
+  return NO;
+}
+
+
 - (void)displayErrorOnMainQueue:(NSString*) heading message:(NSString *)message
 {
   dispatch_async(dispatch_get_main_queue(), ^(void) {
@@ -141,113 +126,26 @@
     [alertView release];
   });
 }
-
--(void) populateNearbyPhotos {
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{ // 1
-  ALAssetsLibrary *assetsLibrary = [CustomeImagePicker defaultAssetsLibrary];
-  [assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-    [group setAssetsFilter:[ALAssetsFilter allPhotos]];
-    [group enumerateAssetsWithOptions:NSEnumerationReverse usingBlock:^(ALAsset *result, NSUInteger index, BOOL *stop) {
-      if(result)
-      {
-        NSDictionary *metadata = [[result defaultRepresentation] metadata];
-        NSMutableDictionary *GPSDictionary = [metadata objectForKey:(NSString *)kCGImagePropertyGPSDictionary];
-        if(GPSDictionary)
-        {
-          
-          CLLocation *locFromPhoto = [[CLLocation alloc] initWithLatitude:[[GPSDictionary objectForKey:@"Latitude"] doubleValue] longitude:[[GPSDictionary objectForKey:@"Longitude"] doubleValue]];
-          
-          
-          CLLocationCoordinate2D loc = CLLocationCoordinate2DMake([[[whereamI objectForKey:@"location"] objectForKey:@"latitude"] doubleValue], [[[whereamI objectForKey:@"location"] objectForKey:@"longitude"] doubleValue]);
-          CLLocation *userLocation = [[CLLocation alloc] initWithLatitude:loc.latitude longitude:loc.longitude];
-
-          
-          CLLocationDistance distance = [locFromPhoto distanceFromLocation:userLocation];
-          NSLog(@"%f",distance);
-          if(distance < 1000)
-          {
-            NSLog(@"Nearby");
-          }
-
-        }
-      }
-    }
-     ];
-    
-  } failureBlock:^(NSError *error) {
-  }];
-  });
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+  if(buttonIndex == 1) {
+    [[UIApplication sharedApplication] openURL:[NSURL  URLWithString:UIApplicationOpenSettingsURLString]];
+  }
 }
 
 
 
-
-
--(void) addLiveCamera
-{
-  NSIndexPath *ip = [[NSIndexPath alloc] initWithIndex:0];
-  UICollectionViewCell *firstCell = [self.collectionView cellForItemAtIndexPath:ip];
-}
-- (void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
-}
-- (NSInteger) collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
-{
-  return self.assets.count;
-}
--(void) showCamera
-{
-  NSLog(@"Camera Selected");
-}
+/* CollectionView Delegate Methods */
 - (UICollectionViewCell *) collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
   static NSString *cellIdentifier = @"PhotoPickerCell";
   static NSString *cameraCellIdentifier = @"CameraCell";
-  
-  if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+  if(indexPath.row == 0)
   {
-    if(indexPath.row == 0 && indexPath.section == 0 && showOnlyPhotosWithGPS == NO)
-    {
-      CameraCell *cell = (CameraCell *)[collectionView dequeueReusableCellWithReuseIdentifier:cameraCellIdentifier forIndexPath:indexPath];
-      ALAsset *asset = self.assets[indexPath.row];
-      ALAssetRepresentation *rep = [asset defaultRepresentation];
-      NSString *assetURL = [[rep url] absoluteString];
-      cell.asset = asset;
-      cell.backgroundColor = [UIColor whiteColor];
-      if([highLightThese containsObject:assetURL])
-      {
-        cell.layer.borderColor = [[UIColor orangeColor] CGColor];
-        cell.layer.borderWidth = 4.0;
-        [cell setAlpha:1.0];
-        [cell setUserInteractionEnabled:YES];
-      }
-      else
-      {
-        if([highLightThese count] == maxPhotos)
-        {
-          cell.layer.borderColor = nil;
-          cell.layer.borderWidth = 0.0;
-          [cell setAlpha:0.5];
-          [cell setUserInteractionEnabled:NO];
-        }
-        else
-        {
-          cell.layer.borderColor = nil;
-          cell.layer.borderWidth = 0.0;
-          [cell setAlpha:1.0];
-          [cell setUserInteractionEnabled:YES];
-        }
-      }
-      return cell;
-    }
-    else
-    {
+    if(showOnlyPhotosWithGPS == YES) {
+      // This is From Tab 2
       PhotoPickerCell *cell = (PhotoPickerCell *)[collectionView dequeueReusableCellWithReuseIdentifier:cellIdentifier forIndexPath:indexPath];
-      
-      ALAsset *asset = self.assets[indexPath.row];
-      ALAssetRepresentation *rep = [asset defaultRepresentation];
-      NSString *assetURL = [[rep url] absoluteString];
+      PHAsset *asset = self.assets[indexPath.row];
+      NSString *assetURL = [NSString stringWithFormat:@"asset-library://%@",asset.localIdentifier];
       cell.asset = asset;
       cell.backgroundColor = [UIColor whiteColor];
       if([highLightThese containsObject:assetURL])
@@ -276,14 +174,22 @@
       }
       return cell;
     }
-  } // Device with Camera
+    else {
+      // This is Normal
+      CameraCell *cell = (CameraCell *)[collectionView dequeueReusableCellWithReuseIdentifier:cameraCellIdentifier forIndexPath:indexPath];
+      cell.backgroundColor = [UIColor whiteColor];
+      return cell;
+    }
+  } // Cell No 0
   else
   {
+    // Case 1
+    NSUInteger rowNum = indexPath.row-1;
+    if(showOnlyPhotosWithGPS == YES)
+      rowNum++;
     PhotoPickerCell *cell = (PhotoPickerCell *)[collectionView dequeueReusableCellWithReuseIdentifier:cellIdentifier forIndexPath:indexPath];
-    
-    ALAsset *asset = self.assets[indexPath.row];
-    ALAssetRepresentation *rep = [asset defaultRepresentation];
-    NSString *assetURL = [[rep url] absoluteString];
+    PHAsset *asset = self.assets[rowNum];
+    NSString *assetURL = [NSString stringWithFormat:@"asset-library://%@",asset.localIdentifier];
     cell.asset = asset;
     cell.backgroundColor = [UIColor whiteColor];
     if([highLightThese containsObject:assetURL])
@@ -311,8 +217,14 @@
       }
     }
     return cell;
-  } //  Device Without Camera
-  return Nil;
+  }
+}
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+  float bottomEdge = scrollView.contentOffset.y + scrollView.frame.size.height;
+  if (bottomEdge >= scrollView.contentSize.height) {
+    if(hasReachedEnd == NO)
+      [self loadPhoto];
+  }
 }
 
 - (CGFloat) collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section
@@ -324,15 +236,238 @@
 {
   return 1;
 }
-/*
- #pragma mark - Navigation
- 
- // In a storyboard-based application, you will often want to do a little preparation before navigation
- - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
- // Get the new view controller using [segue destinationViewController].
- // Pass the selected object to the new view controller.
- }
- */
+-(void) collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+  PHAsset *asset = self.assets[indexPath.row];
+  NSString *assetURL = asset.localIdentifier;
+  
+  if([highLightThese containsObject:assetURL])
+  {
+    [highLightThese removeObject:assetURL];
+    [collectionView reloadData];
+  }
+}
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+  
+  UICollectionViewCell *cell = (UICollectionViewCell*) [collectionView cellForItemAtIndexPath:indexPath];
+  if(indexPath.row == 0) {
+    if(showOnlyPhotosWithGPS == YES) {
+      PHAsset *asset = self.assets[indexPath.row];
+      NSString *assetURL = [NSString stringWithFormat:@"asset-library://%@",asset.localIdentifier];
+      
+      
+      if(![highLightThese containsObject:assetURL] && ([highLightThese count] < maxPhotos))
+      {
+        [highLightThese addObject:assetURL];
+      }
+      else
+      {
+        [highLightThese removeObject:assetURL];
+      }
+      if([highLightThese count]>=1)
+        [nextButton setHidden:NO];
+      else
+        [nextButton setHidden:YES];
+      [collectionView reloadData];
+    }
+    else {
+      [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+        if(granted) {
+          if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+            YCameraViewController *ycv = [[YCameraViewController alloc] init];
+            [ycv setDelegate:self];
+            [ycv setCurrentUserLocation:currentUserLocation];
+            [self presentViewController:ycv animated:YES completion:^{
+            }];
+          }
+          else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+              OLGhostAlertView *ghastly = [[OLGhostAlertView alloc] initWithTitle:@"Oops" message:@"Your device doesn't support camera" timeout:1.0 dismissible:YES];
+              [ghastly show];
+            });
+          }
+        }
+        else {
+          [self cameraAccessDisabled];
+        }
+      }];
+    }
+  }
+  else {
+    NSUInteger rowNum = indexPath.row-1;
+    if(showOnlyPhotosWithGPS == YES)
+      rowNum++;
+    PHAsset *asset = self.assets[rowNum];
+    NSString *assetURL = [NSString stringWithFormat:@"asset-library://%@",asset.localIdentifier];
+    NSInteger retinaScale = [UIScreen mainScreen].scale;
+    if(![highLightThese containsObject:assetURL] && ([highLightThese count] < maxPhotos))
+    {
+      [highLightThese addObject:assetURL];
+      assetURL = [highLightThese objectAtIndex:0];
+      // Load Image Here
+      // START
+      CGRect screenRect = [[UIScreen mainScreen] bounds];
+      CGFloat screenWidth = screenRect.size.width;
+      PHFetchResult *savedAssets = [PHAsset fetchAssetsWithLocalIdentifiers:[NSArray arrayWithObjects:[assetURL stringByReplacingOccurrencesOfString:@"asset-library://" withString:@""], nil] options:nil];
+      [savedAssets enumerateObjectsUsingBlock:^(PHAsset *asset, NSUInteger idx, BOOL *stop) {
+        CGFloat resW = asset.pixelWidth;
+        CGFloat resH = asset.pixelHeight;
+        resH = 300 * retinaScale;
+        CGFloat aspectRatio = resH/resW;
+        if(isnan(screenWidth*aspectRatio))
+          aspectRatio = 1;
+        CGFloat desiredHeight = screenWidth*aspectRatio;
+        CGSize desiredSize = CGSizeMake(screenWidth, desiredHeight);
+        PHImageRequestOptions *cropToSquare = [[PHImageRequestOptions alloc] init];
+        //            cropToSquare.resizeMode = PHImageRequestOptionsResizeModeExact;
+        cropToSquare.synchronous = NO;
+        cropToSquare.networkAccessAllowed = YES;
+        
+        [[PHImageManager defaultManager]
+         requestImageForAsset:(PHAsset *)asset
+         targetSize:desiredSize
+         contentMode:PHImageContentModeAspectFit
+         options:cropToSquare
+         resultHandler:^(UIImage *result, NSDictionary *info) {
+           dispatch_async(dispatch_get_main_queue(), ^{
+             if([highLightThese count] > 1) {
+             }
+           });
+         }];
+      }];
+      // END
+    }
+    else
+    {
+      [highLightThese removeObject:assetURL];
+      if([highLightThese count] > 0)
+        assetURL = [highLightThese objectAtIndex:0];
+      
+      // Load Image Here
+      // START
+      CGRect screenRect = [[UIScreen mainScreen] bounds];
+      CGFloat screenWidth = screenRect.size.width;
+      PHFetchResult *savedAssets = [PHAsset fetchAssetsWithLocalIdentifiers:[NSArray arrayWithObjects:[assetURL stringByReplacingOccurrencesOfString:@"asset-library://" withString:@""], nil] options:nil];
+      [savedAssets enumerateObjectsUsingBlock:^(PHAsset *asset, NSUInteger idx, BOOL *stop) {
+        CGFloat resW = asset.pixelWidth;
+        CGFloat resH = asset.pixelHeight;
+        resH = 300 * retinaScale;
+        CGFloat aspectRatio = resH/resW;
+        if(isnan(screenWidth*aspectRatio))
+          aspectRatio = 1;
+        CGFloat desiredHeight = screenWidth*aspectRatio;
+        CGSize desiredSize = CGSizeMake(screenWidth, desiredHeight);
+        PHImageRequestOptions *cropToSquare = [[PHImageRequestOptions alloc] init];
+        //            cropToSquare.resizeMode = PHImageRequestOptionsResizeModeExact;
+        cropToSquare.synchronous = NO;
+        cropToSquare.networkAccessAllowed = YES;
+        
+        [[PHImageManager defaultManager]
+         requestImageForAsset:(PHAsset *)asset
+         targetSize:desiredSize
+         contentMode:PHImageContentModeAspectFit
+         options:cropToSquare
+         resultHandler:^(UIImage *result, NSDictionary *info) {
+           dispatch_async(dispatch_get_main_queue(), ^{
+             if([highLightThese count] > 1) {
+             }
+           });
+         }];
+      }];
+      // END
+    }
+    if([highLightThese count] == 0) {
+      // distanceFromTop.constant = 65;
+      // imageViewHeight.constant = 0;
+      // topToCollectionView.constant = 0;
+    }
+    else if([highLightThese count] > 0) {
+      // distanceFromTop.constant = 365;
+      // imageViewHeight.constant = 300;
+      // topToCollectionView.constant = 300;
+    }
+    if([highLightThese count]>=1) {
+      [nextButton setHidden:NO];
+    }
+    else {
+      [nextButton setHidden:YES];
+    }
+    [collectionView reloadData];
+  }
+}
+
+/* Load Photo */
+
+-(void) loadPhoto
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.view showActivityView];
+  });
+  __block NSUInteger blockCounter = 0;
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    
+    PHFetchOptions *allPhotosOptions = [PHFetchOptions new];
+    allPhotosOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"modificationDate" ascending:NO]];
+    
+    
+    PHFetchResult *allPhotosResult = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:allPhotosOptions];
+    
+    NSUInteger j = 0;
+    for(NSUInteger i = lastNumber; i < allPhotosResult.count; i++) {
+      j = i;
+      PHAsset *result = (PHAsset*)allPhotosResult[i];
+      if(showOnlyPhotosWithGPS == YES) {
+        if(CLLocationCoordinate2DIsValid(result.location.coordinate)) {
+          if(result.location.coordinate.latitude!=0 && result.location.coordinate.longitude!=0) {
+            [self.assets addObject:result];
+            blockCounter++;
+          }
+        }
+      }
+      else {
+        [self.assets addObject:result];
+        blockCounter++;
+      }
+      if(blockCounter == LOADATONCE) {
+        break;
+      }
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+      lastNumber = j+1;
+      // NSLog(@"Last Num = %d %d %d",lastNumber,allPhotosResult.count,self.assets.count);
+      if(self.assets.count >= allPhotosResult.count)
+        hasReachedEnd = YES;
+      
+      NSString *loadedSoFar = [NSString stringWithFormat:@"Loaded %d/%d",self.assets.count,totalNumberOfPhotos];
+      [howMany setText:loadedSoFar];
+      [self.collectionView reloadData];
+    });
+    //    }];
+  });
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.view hideActivityView];
+  });
+  
+}
+
+-(void) addLiveCamera
+{
+  NSIndexPath *ip = [[NSIndexPath alloc] initWithIndex:0];
+  UICollectionViewCell *firstCell = [self.collectionView cellForItemAtIndexPath:ip];
+}
+- (void)didReceiveMemoryWarning {
+  [super didReceiveMemoryWarning];
+  // Dispose of any resources that can be recreated.
+}
+-(void) showCamera
+{
+  NSLog(@"Camera Selected");
+}
+- (NSInteger) collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
+{
+  return self.assets.count;
+}
 
 + (ALAssetsLibrary *)defaultAssetsLibrary
 {
@@ -344,62 +479,7 @@
   return library;
 }
 
--(void) collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath
-{
-  ALAsset *asset = self.assets[indexPath.row];
-  ALAssetRepresentation *rep = [asset defaultRepresentation];
-  NSString *assetURL = [[rep url] absoluteString];
 
-  if([highLightThese containsObject:assetURL])
-  {
-    [highLightThese removeObject:assetURL];
-//    if(![disselectedImages containsObject:indexPath])
-//      [disselectedImages addObject:indexPath];
-//    [collectionView reloadItemsAtIndexPaths:selectedImages];
-//    [collectionView reloadItemsAtIndexPaths:disselectedImages];
-    [collectionView reloadData];
-  }
-}
-
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-
-  if(indexPath.row == 0 && indexPath.section == 0 && [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] && showOnlyPhotosWithGPS == NO)
-  {
-    if([self checkForCamera] == YES)
-    {
-      YCameraViewController *ycv = [[YCameraViewController alloc] init];
-      [ycv setDelegate:self];
-      [ycv setCurrentUserLocation:currentUserLocation];
-      [self presentViewController:ycv animated:YES completion:^{
-      }];
-   }
-    else
-    {
-      [self displayErrorOnMainQueue:@"Camera Access Disabled" message:@"Please allow Camera Access in System Settings"];
-    }
-
-  }
-  else
-  {
-    ALAsset *asset = self.assets[indexPath.row];
-    ALAssetRepresentation *rep = [asset defaultRepresentation];
-    NSString *assetURL = [[rep url] absoluteString];
-    
-    if(![highLightThese containsObject:assetURL] && ([highLightThese count] < maxPhotos))
-    {
-      [highLightThese addObject:assetURL];
-    }
-    else
-    {
-      [highLightThese removeObject:assetURL];
-    }
-    if([highLightThese count]>=1)
-      [nextButton setHidden:NO];
-    else
-      [nextButton setHidden:YES];
-    [collectionView reloadData];
-  }
-}
 -(IBAction)donePressed:(id)sender
 {
   if([highLightThese count] == 0)
@@ -496,93 +576,14 @@
   
   return newImage;
 }
-//- (UIImage *)fixrotation:(UIImage *)image{
-//  
-//  
-//  if (image.imageOrientation == UIImageOrientationUp) return image;
-//  CGAffineTransform transform = CGAffineTransformIdentity;
-//  
-//  switch (image.imageOrientation) {
-//    case UIImageOrientationDown:
-//    case UIImageOrientationDownMirrored:
-//      transform = CGAffineTransformTranslate(transform, image.size.width, image.size.height);
-//      transform = CGAffineTransformRotate(transform, M_PI);
-//      break;
-//      
-//    case UIImageOrientationLeft:
-//    case UIImageOrientationLeftMirrored:
-//      transform = CGAffineTransformTranslate(transform, image.size.width, 0);
-//      transform = CGAffineTransformRotate(transform, M_PI_2);
-//      break;
-//      
-//    case UIImageOrientationRight:
-//    case UIImageOrientationRightMirrored:
-//      transform = CGAffineTransformTranslate(transform, 0, image.size.height);
-//      transform = CGAffineTransformRotate(transform, -M_PI_2);
-//      break;
-//    case UIImageOrientationUp:
-//    case UIImageOrientationUpMirrored:
-//      break;
-//  }
-//  
-//  switch (image.imageOrientation) {
-//    case UIImageOrientationUpMirrored:
-//    case UIImageOrientationDownMirrored:
-//      transform = CGAffineTransformTranslate(transform, image.size.width, 0);
-//      transform = CGAffineTransformScale(transform, -1, 1);
-//      break;
-//      
-//    case UIImageOrientationLeftMirrored:
-//    case UIImageOrientationRightMirrored:
-//      transform = CGAffineTransformTranslate(transform, image.size.height, 0);
-//      transform = CGAffineTransformScale(transform, -1, 1);
-//      break;
-//    case UIImageOrientationUp:
-//    case UIImageOrientationDown:
-//    case UIImageOrientationLeft:
-//    case UIImageOrientationRight:
-//      break;
-//  }
-//  
-//  // Now we draw the underlying CGImage into a new context, applying the transform
-//  // calculated above.
-//  CGContextRef ctx = CGBitmapContextCreate(NULL, image.size.width, image.size.height,
-//                                           CGImageGetBitsPerComponent(image.CGImage), 0,
-//                                           CGImageGetColorSpace(image.CGImage),
-//                                           CGImageGetBitmapInfo(image.CGImage));
-//  CGContextConcatCTM(ctx, transform);
-//  switch (image.imageOrientation) {
-//    case UIImageOrientationLeft:
-//    case UIImageOrientationLeftMirrored:
-//    case UIImageOrientationRight:
-//    case UIImageOrientationRightMirrored:
-//      // Grr...
-//      CGContextDrawImage(ctx, CGRectMake(0,0,image.size.height,image.size.width), image.CGImage);
-//      break;
-//      
-//    default:
-//      CGContextDrawImage(ctx, CGRectMake(0,0,image.size.width,image.size.height), image.CGImage);
-//      break;
-//  }
-//  
-//  // And now we just create a new UIImage from the drawing context
-//  CGImageRef cgimg = CGBitmapContextCreateImage(ctx);
-//  UIImage *img = [UIImage imageWithCGImage:cgimg];
-//  CGContextRelease(ctx);
-//  CGImageRelease(cgimg);
-//  return img;
-//  
-//}
 
 -(IBAction)cancelPressed:(id)sender
 {
-//  self.selectedImage = Nil;
   [self dismissViewControllerAnimated:NO completion:^{
     if ([self.delegate respondsToSelector:@selector(imageSelectionCancelled)]) {
       [self.delegate imageSelectionCancelled];
     }
   }];
-  
 }
 
 
@@ -654,59 +655,48 @@
 }
 
 
--(void) doSomeThingWithImage:(NSDictionary*)params
-{
-  UIImage *image = [params objectForKey:@"data"];
-  NSDictionary *metadata = [params objectForKey:@"metadata"];
-  params = Nil;
-  ALAssetsLibrary *assetsLibrary = [CustomeImagePicker defaultAssetsLibrary];
-  [assetsLibrary writeImageToSavedPhotosAlbum:image.CGImage
-                                     metadata:metadata
-                              completionBlock:^(NSURL *assetURL, NSError *error) {
-                                [self dismissViewControllerAnimated:NO completion:^{
-                                  NSMutableArray *allImagesIPicked = [[NSMutableArray alloc] init];
-                                  [allImagesIPicked addObject:assetURL.absoluteString];
-                                  // Now insert the Camera Image at 0 and 2 more
-                                  if([highLightThese count]>=1)
-                                  {
-                                    int count = 1;
-                                    for(NSString *ip in highLightThese)
-                                    {
-                                      [allImagesIPicked addObject:ip];
-                                      count++;
-                                      if(count >= maxPhotos)
-                                        break;
-                                    } // end of for loop
-                                  }
-                                  if ([self.delegate respondsToSelector:@selector(imageSelected:)]) {
-                                    [self.delegate imageSelected:allImagesIPicked];
-                                  }
-                                }];
-                                
-                                
-                                
-                              }];
-}
-
-
 
 /* YCameraView Delegate Start */
 -(void)didFinishPickingImage:(UIImage *)image metadata:(NSDictionary *)metadata {
   // Use image as per your need
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{ // 1
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self.view showActivityView];
+  [self dismissViewControllerAnimated:NO completion:^{
+    [self.view showActivityView];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+      [[CustomeImagePicker defaultAssetsLibrary] writeImageToSavedPhotosAlbum:[image CGImage] metadata:metadata completionBlock:^(NSURL *assetURL, NSError *error) {
+        NSMutableArray *allImagesIPicked = [[NSMutableArray alloc] init];
+        PHFetchOptions *allPhotosOptions = [PHFetchOptions new];
+        allPhotosOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+        PHFetchResult *allPhotosResult = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:allPhotosOptions];
+        if(allPhotosResult.count > 0) {
+          PHAsset *asset = [allPhotosResult objectAtIndex:0];
+          [allImagesIPicked addObject:[NSString stringWithFormat:@"asset-library://%@",asset.localIdentifier]];
+        }
+        allPhotosResult = Nil;
+        allPhotosOptions = Nil;
+        // [allImagesIPicked addObject:assetURL.absoluteString];
+        // Now insert the Camera Image at 0 and 2 more
+        if([highLightThese count]>=1)
+        {
+          int count = 1;
+          for(NSString *ip in highLightThese)
+          {
+            [allImagesIPicked addObject:[NSString stringWithFormat:@"asset-library://%@",ip]];
+            count++;
+            if(count >= maxPhotos)
+              break;
+          } // end of for loop
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if ([self.delegate respondsToSelector:@selector(imageSelected:)]) {
+            [self dismissViewControllerAnimated:NO completion:^{
+              [self.delegate imageSelected:allImagesIPicked];
+            }];
+          }
+        });
+      }];
     });
-    
-    
-    NSDictionary *extraParams = [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:image,metadata,nil] forKeys:[NSArray arrayWithObjects:@"data",@"metadata",nil]];
-    
-    [NSThread detachNewThreadSelector:@selector(doSomeThingWithImage:) toTarget:self withObject:extraParams];
-    
-  });
-  
+  }];
 }
 /* YCameraView Delegate End */
-
 
 @end

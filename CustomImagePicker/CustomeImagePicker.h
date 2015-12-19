@@ -12,10 +12,10 @@
 #import "CameraCell.h"
 #import "Header.h"
 #import "OLGhostAlertView.h"
-#import "YCameraViewController.h"
 #import <ImageIO/ImageIO.h>
 #import <MapKit/MapKit.h>
-
+#define LOADATONCE 50
+#import "YCameraViewController.h"
 @protocol CustomeImagePickerDelegate <NSObject>
 
 -(void)imageSelected:(NSArray*)arrayOfImages;
@@ -23,15 +23,14 @@
 
 @end
 
-
-
-@interface CustomeImagePicker : UIViewController <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout,UIImagePickerControllerDelegate, UINavigationControllerDelegate,YCameraViewControllerDelegate>
+@interface CustomeImagePicker : UIViewController <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout,UIImagePickerControllerDelegate, UINavigationControllerDelegate,YCameraViewControllerDelegate,UIAlertViewDelegate>
 {
   AVCaptureSession *session;
   AVCaptureVideoPreviewLayer *captureVideoPreviewLayer;
   AVCaptureStillImageOutput *stillImageOutput;
   UIImage *croppedImageWithoutOrientation;
-
+  BOOL hasReachedEnd;
+  NSUInteger totalNumberOfPhotos,lastNumber;
 }
 
 @property(nonatomic, weak) IBOutlet UICollectionView *collectionView;
@@ -53,6 +52,7 @@
 // @property(nonatomic, weak) IBOutlet UIButton *nextButton;
 @property (nonatomic,strong) CLLocation *currentUserLocation;
 @property (nonatomic,assign) BOOL showOnlyPhotosWithGPS;
+@property(nonatomic, weak) IBOutlet UILabel *howMany;
 
 
 

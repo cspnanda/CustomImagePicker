@@ -12,5 +12,5 @@
 @property(nonatomic, weak) IBOutlet UIImageView *imageView1;
 @property(nonatomic, weak) IBOutlet UIImageView *imageView2;
 @property(nonatomic, weak) IBOutlet UIImageView *imageView3;
-
+@property(nonatomic,strong) NSMutableArray *selectedNow;
 @end
